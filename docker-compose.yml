@@ -1,0 +1,46 @@
+version: '4.29'
+
+services:
+  db:
+    container_name: postgres_container
+    image: postgres
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: alef
+    ports:
+      - "5432:5432"
+    networks:
+      - network
+  pgadmin:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "5050:80"
+  app:
+    container_name: test-alef_container
+    image: node
+    volumes:
+      - .:/usr/app
+    working_dir: /usr/app
+    restart: always
+    ports:
+      - "5000:3000"
+    environment:
+      - DATABASE_URL=postgresql://root:root@postgres_container:5432/alef
+    command: sh -c "npm run migrate && npm start"
+    networks:
+      - network
+    depends_on:
+      - db
+
+networks:
+  network:
+    external: true
